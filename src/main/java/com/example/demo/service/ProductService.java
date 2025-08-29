@@ -1,0 +1,81 @@
+package com.example.demo.service;
+
+import com.example.demo.controller.product.dto.ImageSimpleDto;
+import com.example.demo.controller.product.dto.ProductCreateRequestDto;
+import com.example.demo.controller.product.dto.ProductResponseDto;
+import com.example.demo.repository.image.ImageRepository;
+import com.example.demo.repository.image.entity.Image;
+import com.example.demo.repository.product.BaseRepository;
+import com.example.demo.repository.product.ProductImageRepository;
+import com.example.demo.repository.product.ProductRepository;
+import com.example.demo.repository.product.entity.Base;
+import com.example.demo.repository.product.entity.Product;
+import com.example.demo.repository.product.entity.ProductImage;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class ProductService {
+    private final ProductRepository productRepository;
+    private final BaseRepository baseRepository;
+    private final ImageRepository imageRepository;
+    private final ProductImageRepository productImageRepository;
+    private final ImageService imageService;
+
+    @Transactional
+    public ProductResponseDto save(ProductCreateRequestDto request) {
+        // 1. 베이스 제품 ID 검증
+        Integer baseId = request.getBaseId();
+        Base base = baseRepository.findById(baseId)
+                .orElseThrow(() -> new RuntimeException("not exist baseId")); // RuntimeException vs IllegalArgumentException
+
+        // 사진 확인 -> X, 최초 등록이니까 사진도 생성해야함
+//        List<Image> Images = request.getImageIds().stream()
+//                .map((id) -> imageRepository.findById(id)
+//                        .orElseThrow(() -> new RuntimeException("not exist ImageId"))
+////                ).toList();
+
+        // 2. Product 엔티티 생성
+        Product product = Product.create(
+                request.getName(),
+                base
+        );
+
+        // 3. 이미지 개별 저장 -> ProductImage 저장
+        for (String image : request.getImages()) {
+            Image createdImg = imageService.save(image);
+            ProductImage productImage = ProductImage.create(product, createdImg);
+
+            product.addProductImage(productImage); // 연관관계 편의 메서드@
+        }
+
+        // 4. Product 저장으로 한 번에 저장
+        Product created = productRepository.save(product);
+
+
+//        // Product 저장 - cascade
+//            // 저장 먼저 하고 image 할당?
+//        Product product = Product.create(
+//                request.getName(),
+//                base
+//        );
+//        Product created = productRepository.save(product);
+//
+//        // ProductImage 할당
+//        List<ProductImage> productImages = Images.stream()
+//                .map(image -> ProductImage.create(product, image))
+//                .toList();
+//        productImageRepository.saveAll(productImages);
+//
+//        // Product에도 이미지 할당해주기(양방향)
+//        created.update(productImages);
+
+        return ProductResponseDto.from(created);
+    }
+}

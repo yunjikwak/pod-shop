@@ -1,5 +1,6 @@
 package com.example.demo.repository.user.entity;
 
+import com.example.demo.repository.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -7,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 
 @Getter
 @Entity
@@ -26,6 +29,9 @@ public class User {
     private LocalDateTime updatedAt;
 
     // Product OneToMany
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Product> products;
+
     // Image OneToMany
 
     public static User create(String loginId, String password, String name) {
@@ -35,7 +41,8 @@ public class User {
                 password,
                 name,
                 LocalDateTime.now(),
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                Collections.emptyList()
         );
     }
 }
