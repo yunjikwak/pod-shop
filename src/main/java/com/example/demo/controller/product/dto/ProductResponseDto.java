@@ -33,4 +33,13 @@ public class ProductResponseDto {
                 entity.getName()
         );
     }
+
+    public static ProductResponseDto simple(Product entity) {
+        return new ProductResponseDto(
+                entity.getId(),
+                entity.getBase().getId(),
+                null,
+                entity.getName()
+        );
+    }
 }

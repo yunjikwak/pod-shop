@@ -19,9 +19,10 @@ import java.util.List;
 public class Product {
 
     public enum ProductStatus {
-        PENDING,
-        SALE,
-        STOP
+//        PENDING,
+//        SALE,
+//        STOP,
+        ENROLL, APPROVE, REJECT, BAN
     }
 
     @Id
@@ -59,7 +60,7 @@ public class Product {
                 LocalDateTime.now(),
                 LocalDateTime.now(),
                 false,
-                ProductStatus.PENDING,
+                ProductStatus.ENROLL,
                 user, // null?
                 base,
                 new ArrayList<>()

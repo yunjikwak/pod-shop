@@ -25,20 +25,28 @@ public class ProductController {
     private final UserRepository userRepository;
 
 //    @GetMapping("/{id}")
-//    public ResponseEntity<List<ProductResponseDto>> products(@AuthenticationPrincipal User user) {
+//    public ResponseEntity<List<ProductResponseDto>> userProducts(@AuthenticationPrincipal User user) {
 //        if (user == null) {
 //            return ResponseEntity.status(401).build();
 //        }
-//        List<ProductResponseDto> products = productService.findAllbyId(user.getId());
-//        return ResponseEntity.ok(products);
+//        List<ProductResponseDto> userProducts = productService.findAllbyId(user.getId());
+//        return ResponseEntity.ok(userProducts);
 //    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<List<ProductResponseDto>> products(@RequestHeader("X-USER-ID") Integer userId) {
+    public ResponseEntity<List<ProductResponseDto>> userProducts(@RequestHeader("X-USER-ID") Integer userId) {
         if (userId == null) {
             return ResponseEntity.status(401).build();
         }
-        List<ProductResponseDto> products = productService.findAllbyId(userId);
+        List<ProductResponseDto> userProducts = productService.findAllbyId(userId);
+        return ResponseEntity.ok(userProducts);
+    }
+
+    @GetMapping("")
+    public ResponseEntity<List<ProductResponseDto>> products(
+            @RequestParam int page, @RequestParam int size
+    ) {
+        List<ProductResponseDto> products = productService.findAll(page, size);
         return ResponseEntity.ok(products);
     }
 

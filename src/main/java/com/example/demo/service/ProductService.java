@@ -13,7 +13,11 @@ import com.example.demo.repository.product.entity.Product;
 import com.example.demo.repository.product.entity.ProductImage;
 import com.example.demo.repository.user.UserRepository;
 import com.example.demo.repository.user.entity.User;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,12 +35,46 @@ public class ProductService {
     private final ImageService imageService;
     private final UserRepository userRepository;
 
+    @PostConstruct
+    public void initSaleProducts() {
+        User user = userRepository.findAll().stream().findFirst()
+                .orElseGet(() -> userRepository.save(User.create("testuser", "password", "테스트유저")));
+        Base base = baseRepository.findAll().stream().findFirst()
+                .orElseGet(() -> baseRepository.save(Base.create("테스트베이스", 1000.0)));
+
+        for (int i = 1; i <= 3; i++) {
+            Product product = Product.create("SALE 상품 " + i, user, base);
+            // 상태를 SALE로 변경
+            product = new Product(
+                    product.getId(),
+                    product.getName(),
+                    product.getDescription(),
+                    product.getCreatedAt(),
+                    product.getUpdatedAt(),
+                    product.isVisible(),
+                    Product.ProductStatus.ENROLL,
+                    product.getUser(),
+                    product.getBase(),
+                    product.getProductImages()
+            );
+            productRepository.save(product);
+        }
+    }
+
     @Transactional
     public List<ProductResponseDto> findAllbyId(Integer id) {
-
         List<Product> products = productRepository.findAllById(id);
         return products.stream()
                 .map(ProductResponseDto::from)
+                .toList();
+    }
+
+    @Transactional
+    public List<ProductResponseDto> findAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page-1, size);
+        Page<Product> products = productRepository.findByStatus(Product.ProductStatus.ENROLL, pageable);
+        return products.stream()
+                .map(ProductResponseDto::simple)
                 .toList();
     }
 
