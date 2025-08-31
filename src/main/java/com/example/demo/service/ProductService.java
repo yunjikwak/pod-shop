@@ -11,6 +11,7 @@ import com.example.demo.repository.product.ProductRepository;
 import com.example.demo.repository.product.entity.Base;
 import com.example.demo.repository.product.entity.Product;
 import com.example.demo.repository.product.entity.ProductImage;
+import com.example.demo.repository.product.entity.ReviewHistory;
 import com.example.demo.repository.user.UserRepository;
 import com.example.demo.repository.user.entity.User;
 import jakarta.annotation.PostConstruct;
@@ -128,5 +129,57 @@ public class ProductService {
 //        created.update(productImages);
 
         return ProductResponseDto.from(created);
+    }
+
+    @Transactional
+    public ProductResponseDto changeStauts(Integer productId, String status) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("not exist Id"));
+
+        // 상태 확인
+        Product.ProductStatus newStatus = Product.ProductStatus.valueOf(status);
+        Product.ProductStatus curStatus = product.getStatus();
+
+        if (newStatus == Product.ProductStatus.APPROVE) {
+            if (!(curStatus == Product.ProductStatus.ENROLL ||
+                    curStatus == Product.ProductStatus.REJECT ||
+                    curStatus == Product.ProductStatus.BAN)) {
+                throw new IllegalStateException("cannot change");
+            }
+        } else if (newStatus == Product.ProductStatus.REJECT) {
+            if (curStatus != Product.ProductStatus.ENROLL) {
+                throw new IllegalStateException("cannot change");
+            }
+        } else if (newStatus == Product.ProductStatus.BAN) {
+            if (curStatus != Product.ProductStatus.APPROVE) {
+                throw new IllegalStateException("cannot change");
+            }
+        } else {
+            throw new IllegalArgumentException("cannot change");
+        }
+
+        // 상태 변경
+        product = new Product(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getCreatedAt(),
+                product.getUpdatedAt(),
+                product.isVisible(),
+                newStatus,
+                product.getUser(),
+                product.getBase(),
+                product.getProductImages()
+        );
+        productRepository.save(product);
+
+        // 히스토리 생성
+        for (ProductImage pi : product.getProductImages()) {
+            pi.getReviewHistories().add(
+                    ReviewHistory.create(pi)
+            );
+        }
+
+        return ProductResponseDto.from(product);
     }
 }

@@ -63,4 +63,13 @@ public class ProductController {
         ProductResponseDto product = productService.save(request, user);
         return ResponseEntity.ok(product);
     }
+
+    @PatchMapping("/{productId}/status")
+    public ResponseEntity<ProductResponseDto> changeStatus(
+            @PathVariable Integer productId,
+            @RequestParam("status") String status
+    ) {
+        ProductResponseDto product = productService.changeStauts(productId, status);
+        return ResponseEntity.ok(product);
+    }
 }
