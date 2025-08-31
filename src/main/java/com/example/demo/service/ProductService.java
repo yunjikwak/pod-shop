@@ -11,6 +11,8 @@ import com.example.demo.repository.product.ProductRepository;
 import com.example.demo.repository.product.entity.Base;
 import com.example.demo.repository.product.entity.Product;
 import com.example.demo.repository.product.entity.ProductImage;
+import com.example.demo.repository.user.UserRepository;
+import com.example.demo.repository.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,9 +29,19 @@ public class ProductService {
     private final ImageRepository imageRepository;
     private final ProductImageRepository productImageRepository;
     private final ImageService imageService;
+    private final UserRepository userRepository;
 
     @Transactional
-    public ProductResponseDto save(ProductCreateRequestDto request) {
+    public List<ProductResponseDto> findAllbyId(Integer id) {
+
+        List<Product> products = productRepository.findAllById(id);
+        return products.stream()
+                .map(ProductResponseDto::from)
+                .toList();
+    }
+
+    @Transactional
+    public ProductResponseDto save(ProductCreateRequestDto request, User user) {
         // 1. 베이스 제품 ID 검증
         Integer baseId = request.getBaseId();
         Base base = baseRepository.findById(baseId)
@@ -44,6 +56,7 @@ public class ProductService {
         // 2. Product 엔티티 생성
         Product product = Product.create(
                 request.getName(),
+                user,
                 base
         );
 

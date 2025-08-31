@@ -51,7 +51,7 @@ public class Product {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> productImages = new ArrayList<>();
 
-    public static Product create(String name, Base base) {
+    public static Product create(String name, User user, Base base) {
         return new Product(
                 null,
                 name,
@@ -60,7 +60,7 @@ public class Product {
                 LocalDateTime.now(),
                 false,
                 ProductStatus.PENDING,
-                null, // null?
+                user, // null?
                 base,
                 new ArrayList<>()
         );

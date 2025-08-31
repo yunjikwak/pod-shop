@@ -14,7 +14,8 @@ public class ProductResponseDto {
     private Integer id;
 //    private Integer userId;
     private Integer baseId;
-    private List<ImageSimpleDto> ImageUrls;
+//    private List<ImageSimpleDto> ImageUrls;
+    private List<ProductImageResponseDto> productImageResponseDtos;
 
     private String name;
 
@@ -23,10 +24,12 @@ public class ProductResponseDto {
                 entity.getId(),
 //                entity.getUser().getId(),
                 entity.getBase().getId(),
+//                entity.getProductImages().stream()
+//                        .map(ProductImage::getImage)
+//                        .map(ImageSimpleDto::from)
+//                        .toList(),
                 entity.getProductImages().stream()
-                        .map(ProductImage::getImage)
-                        .map(ImageSimpleDto::from)
-                        .toList(),
+                                .map(ProductImageResponseDto::from).toList(),
                 entity.getName()
         );
     }

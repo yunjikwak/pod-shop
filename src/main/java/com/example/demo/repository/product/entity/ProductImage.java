@@ -7,6 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Getter
 @Entity
@@ -38,14 +41,21 @@ public class ProductImage {
 
     private LocalDateTime createdAt;
 
+    @OneToMany(mappedBy = "productImage", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReviewHistory> reviewHistories;
+
     public static ProductImage create(Product product, Image image) {
-        return new ProductImage(
+        ProductImage productImage = new ProductImage(
                 null,
                 product,
                 image,
                 ProductImageStatus.PENDING,
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                new ArrayList<>()
         );
+        ReviewHistory history = ReviewHistory.create(productImage);
+        productImage.reviewHistories.add(history);
+        return productImage;
     }
 
     // 같은 패키지 안 접근만 허용 -> protected !
