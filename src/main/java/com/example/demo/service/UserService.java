@@ -2,6 +2,8 @@ package com.example.demo.service;
 
 import com.example.demo.controller.user.dto.UserCreateResponseDto;
 import com.example.demo.controller.user.dto.UserResponseDto;
+import com.example.demo.exception.CustomException;
+import com.example.demo.exception.ExceptionType;
 import com.example.demo.repository.user.UserRepository;
 import com.example.demo.repository.user.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +20,7 @@ public class UserService {
     @Transactional
     public UserResponseDto findById(Integer id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("not exist Id"));
+                .orElseThrow(() -> new CustomException(ExceptionType.USER_NOT_FOUND, id));
         return UserResponseDto.from(user);
     }
 
@@ -26,7 +28,7 @@ public class UserService {
     public UserResponseDto save(UserCreateResponseDto request) {
 
         if (userRepository.existsByLoginId(request.getLoginId())) {
-            throw new IllegalArgumentException("duplicated id");
+            throw new CustomException(ExceptionType.DUPLICATED_LOGIN_ID, request.getLoginId());
         }
 
         String hash = passwordEncoder.encode(request.getPassword());

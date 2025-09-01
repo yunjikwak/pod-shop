@@ -3,6 +3,8 @@ package com.example.demo.service;
 import com.example.demo.controller.product.dto.ImageSimpleDto;
 import com.example.demo.controller.product.dto.ProductCreateRequestDto;
 import com.example.demo.controller.product.dto.ProductResponseDto;
+import com.example.demo.exception.CustomException;
+import com.example.demo.exception.ExceptionType;
 import com.example.demo.repository.image.ImageRepository;
 import com.example.demo.repository.image.entity.Image;
 import com.example.demo.repository.product.BaseRepository;
@@ -84,7 +86,7 @@ public class ProductService {
         // 1. 베이스 제품 ID 검증
         Integer baseId = request.getBaseId();
         Base base = baseRepository.findById(baseId)
-                .orElseThrow(() -> new RuntimeException("not exist baseId")); // RuntimeException vs IllegalArgumentException
+                .orElseThrow(() -> new CustomException(ExceptionType.BASE_NOT_FOUND, baseId));// RuntimeException vs IllegalArgumentException
 
         // 사진 확인 -> X, 최초 등록이니까 사진도 생성해야함
 //        List<Image> Images = request.getImageIds().stream()
@@ -134,7 +136,7 @@ public class ProductService {
     @Transactional
     public ProductResponseDto changeStauts(Integer productId, String status) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("not exist Id"));
+                .orElseThrow(() -> new CustomException(ExceptionType.PRODUCT_NOT_FOUND, productId));
 
         // 상태 확인
         Product.ProductStatus newStatus = Product.ProductStatus.valueOf(status);
@@ -144,18 +146,18 @@ public class ProductService {
             if (!(curStatus == Product.ProductStatus.ENROLL ||
                     curStatus == Product.ProductStatus.REJECT ||
                     curStatus == Product.ProductStatus.BAN)) {
-                throw new IllegalStateException("cannot change");
+                throw new CustomException(ExceptionType.INVALID_PRODUCT_STATUS, status);
             }
         } else if (newStatus == Product.ProductStatus.REJECT) {
             if (curStatus != Product.ProductStatus.ENROLL) {
-                throw new IllegalStateException("cannot change");
+                throw new CustomException(ExceptionType.INVALID_PRODUCT_STATUS, status);
             }
         } else if (newStatus == Product.ProductStatus.BAN) {
             if (curStatus != Product.ProductStatus.APPROVE) {
-                throw new IllegalStateException("cannot change");
+                throw new CustomException(ExceptionType.INVALID_PRODUCT_STATUS, status);
             }
         } else {
-            throw new IllegalArgumentException("cannot change");
+            throw new CustomException(ExceptionType.INVALID_PRODUCT_STATUS, status);
         }
 
         // 상태 변경
